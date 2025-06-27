@@ -1,0 +1,5 @@
+menu "AW20216S LED driver"
+    config AW20216S
+        bool "Enable AW20216S LED driver"
+        default y
+endmenu
