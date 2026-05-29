@@ -1,2 +1,4 @@
-zephyr_library_amend()
-zephyr_library_sources(drivers/led/aw20216s.c)
+if(CONFIG_AW20216S)
+  zephyr_library_amend()
+  zephyr_library_sources(drivers/led/aw20216s.c)
+endif()
