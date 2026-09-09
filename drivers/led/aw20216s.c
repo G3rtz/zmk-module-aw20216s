@@ -22,9 +22,6 @@
 #include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(aw20216s, LOG_LEVEL);
 
-#include "led_context.h"
-
-
 #define AW20216S_MIN_BRIGHTNESS 0
 #define AW20216S_MAX_BRIGHTNESS 255
 
@@ -41,7 +38,8 @@ struct aw20216s_config {
 };
 
 struct aw20216s_data {
-	struct led_data dev_data;
+	uint8_t min_brightness;
+	uint8_t max_brightness;
 };
 
 static int aw20216s_write_register(
@@ -128,13 +126,12 @@ static int aw20216s_read_register(
 static int aw20216s_led_set_brightness(const struct device *dev, uint32_t led, uint8_t value)
 {
 	struct aw20216s_data *data = dev->data;
-	struct led_data *dev_data = &data->dev_data;
 
-	if (value < dev_data->min_brightness || value > dev_data->max_brightness) {
+	if (value < data->min_brightness || value > data->max_brightness) {
 		return -EINVAL;
 	}
 
-	uint8_t val = (value * 255U) / dev_data->max_brightness;
+	uint8_t val = (value * 255U) / data->max_brightness;
 
 	int err = aw20216s_write_register(
 			dev,
@@ -154,7 +151,6 @@ static int aw20216s_led_set_brightness(const struct device *dev, uint32_t led, u
 static inline int aw20216s_led_on(const struct device *dev, uint32_t led)
 {
 	struct aw20216s_data *data = dev->data;
-	struct led_data *dev_data = &data->dev_data;
 
 	if (led > AW20216S_NUM_PWM_CONFIG_REGISTERS) {
 		return -EINVAL;
@@ -166,7 +162,7 @@ static inline int aw20216s_led_on(const struct device *dev, uint32_t led)
 			dev,
 			AW20216S_PWM_CONFIGURATION_REGISTER_BASE + led,
 			AW20216S_PAGE_1,
-			dev_data->max_brightness
+			data->max_brightness
 	);
 
 	if (err) {
@@ -201,7 +197,6 @@ static int aw20216s_led_init(const struct device *dev)
 {
 	const struct aw20216s_config *config = dev->config;
 	struct aw20216s_data *data = dev->data;
-	struct led_data *dev_data = &data->dev_data;
 
 	int err;
 
@@ -220,8 +215,8 @@ static int aw20216s_led_init(const struct device *dev)
 		return -ENODEV;
 	}
 
-	dev_data->min_brightness = AW20216S_MIN_BRIGHTNESS;
-	dev_data->max_brightness = AW20216S_MAX_BRIGHTNESS;
+	data->min_brightness = AW20216S_MIN_BRIGHTNESS;
+	data->max_brightness = AW20216S_MAX_BRIGHTNESS;
 
 	err = aw20216s_write_register(
 			dev,
