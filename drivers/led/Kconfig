@@ -2,7 +2,7 @@ menu "AW20216S LED driver"
     config AW20216S
         bool "Enable AW20216S LED driver"
         default y
+        depends on LED
         depends on SPI
         depends on GPIO
-        select LED
 endmenu
